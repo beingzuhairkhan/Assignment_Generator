@@ -16,7 +16,7 @@ const app = express();
 
 // Enable JSON parsing
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "https://assignment-generator-chi.vercel.app", credentials: true }));
 
 // Groq SDK
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });

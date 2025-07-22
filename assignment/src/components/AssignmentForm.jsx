@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UploadCloud } from "lucide-react";
 import axios from "axios";
-
+import toast, { Toaster } from 'react-hot-toast';
 
 const handwritingStyles = [
     { name: "Style 1", fontFamily: "Patrick Hand" },
@@ -27,49 +27,50 @@ const AssignmentForm = () => {
         if (file && file.type.startsWith("image/")) {
             setImage(file); // Store actual File object
         } else {
-            alert("Only image files are allowed!");
+             toast.error("Only image files are allowed!");
         }
     };
 
-    const handleSubmit = async () => {
-        if (!name || !roll || !image) {
-            alert("Please fill all required fields and upload an image.");
-            return;
-        }
+ const handleSubmit = async () => {
+    if (!name || !roll || !image) {
+        toast.error("Please fill all required fields and upload an image.");
+        return;
+    }
 
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("roll", roll);
-        formData.append("handwritingStyle", selectedStyle.name);
-        formData.append("backgroundStyle", selectedBackground);
-        formData.append("inkColor", inkColor);
-        formData.append("file", image);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("roll", roll);
+    formData.append("handwritingStyle", selectedStyle.name);
+    formData.append("backgroundStyle", selectedBackground);
+    formData.append("inkColor", inkColor);
+    formData.append("file", image);
 
+    try {
+        setLoading(true);
+        toast.loading("Generating assignment...", { id: "loadingToast" });
 
-        try {
-            setLoading(true); // START
-            const response = await axios.post("http://localhost:5000/api/generate", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-                responseType: "blob",
-            });
+        const response = await axios.post("https://assignment-generator-rgmf.onrender.com/api/generate", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            responseType: "blob",
+        });
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "handwritten-assignment.pdf");
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "handwritten-assignment.pdf");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
 
-            alert("Assignment downloaded successfully!");
-        } catch (error) {
-            alert("Submission failed.");
-            console.error(error);
-        } finally {
-            setLoading(false); // END
-        }
-    };
+        toast.success("Assignment downloaded successfully!", { id: "loadingToast" });
+    } catch (error) {
+        toast.error("Submission failed!", { id: "loadingToast" });
+        console.error(error);
+    } finally {
+        setLoading(false);
+    }
+};
 
 
     return (
